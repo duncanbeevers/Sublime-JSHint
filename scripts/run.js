@@ -136,19 +136,27 @@ function setOptions(file, isPackageJSON, optionsStore, globalsStore) {
 
   for (var key in obj) {
     var value = obj[key];
-
     // Globals are defined as either an array, or an object with keys as names,
     // and a boolean value to determine if they are assignable.
-    if (key == "globals" || key == "predef") {
+    if (key == "predef" || key == "globals") {
       if (value instanceof Array) {
         for (var i = 0; i < value.length; i++) {
           var name = value[i];
-          globalsStore[name] = true;
+          // If a predef begins with a dash, it is not a global.
+          if (key !== "predef" || name[0] !== "-") {
+            globalsStore[name] = true;
+          }
         }
+
       } else {
         for (var name in value) {
           globalsStore[name] = isTrue(value[name]);
         }
+      }
+
+      // Pass predef option through in case it contains negated globals.
+      if (key == "predef") {
+        optionsStore[key] = value;
       }
     } else {
       // Special case "true" and "false" pref values as actually booleans.
